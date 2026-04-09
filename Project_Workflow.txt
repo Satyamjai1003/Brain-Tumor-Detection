@@ -1,0 +1,103 @@
+================================================================================
+BRAIN TUMOR DETECTION PROJECT - FULL DEVELOPMENT WORKFLOW
+================================================================================
+
+This document outlines the complete step-by-step process of building the Brain 
+Tumor Classification project, from initial setup to the final model prediction.
+
+--------------------------------------------------------------------------------
+STEP 1: ENVIRONMENT SETUP
+--------------------------------------------------------------------------------
+(Original Source: /backend/requirements.txt)
+1. Install Python (v3.9 or higher recommended).
+2. Create a virtual environment to keep dependencies isolated:
+   $ python -m venv venv
+   $ source venv/bin/activate  # or .\venv\Scripts\activate on Windows
+3. Install required libraries:
+   - torch & torchvision (Deep Learning framework)
+   - timm (Library for state-of-the-art pretrained models)
+   - pandas & numpy (Data manipulation)
+   - matplotlib & seaborn (Visualization)
+   - scikit-learn (Metrics and dataset splitting)
+   - pillow (Image processing)
+
+--------------------------------------------------------------------------------
+STEP 2: DATASET COLLECTION & ORGANIZATION
+--------------------------------------------------------------------------------
+(Original Source: /dataset.py, /utils.py)
+1. Collect Brain MRI images.
+2. Organize filenames to include class labels (e.g., "001_glioma_tumor.png").
+3. Structure the directory as follows:
+   /data
+     /train
+       /train  <-- All labeled training images here
+     /test
+       /test   <-- Images for final testing without labels
+
+--------------------------------------------------------------------------------
+STEP 3: DATA PREPROCESSING
+--------------------------------------------------------------------------------
+(Original Source: /dataset.py)
+1. Data Cleaning: Ensure all images are valid and in RGB format.
+2. Label Extraction: Parse filenames to map each image to its class index:
+   {glioma: 0, meningioma: 1, no_tumor: 2, pituitary: 3}
+3. Stratified Splitting: Split data into Training (85%) and Validation (15%) 
+   sets while maintaining class proportions.
+4. Data Augmentation: Apply random flips, rotations, and color jitters to the 
+   training images to improve model generalization and prevent overfitting.
+5. Normalization: Scale pixel values using ImageNet means and standard deviations.
+
+--------------------------------------------------------------------------------
+STEP 4: MODEL ARCHITECTURE SELECTION
+--------------------------------------------------------------------------------
+(Original Source: /models.py)
+1. Selection: Choose a CNN backbone. EfficientNetV2-B0 is selected for its 
+   excellent accuracy-to-parameter ratio.
+2. Customization: Replace the final classification head (Fully Connected layer) 
+   of the pretrained model with a new layer matching our 4 tumor classes.
+3. Device Transfer: Move the model to GPU (CUDA) for accelerated training.
+
+--------------------------------------------------------------------------------
+STEP 5: TRAINING STRATEGY
+--------------------------------------------------------------------------------
+(Original Source: /train.py, /colab_training/train.py)
+1. Loss Function: Use Cross-Entropy Loss with "Label Smoothing" (0.1) to 
+   prevent the model from becoming overconfident.
+2. Class Weights: Calculate weights to handle class imbalance (giving more 
+   importance to underrepresented tumor types).
+3. Optimizer: Use AdamW with a weight decay of 1e-4 for stable weight updates.
+4. Learning Rate Scheduler: Use Cosine Annealing with Warm Restarts to 
+   dynamically adjust the learning rate during training.
+5. Mixed Precision (AMP): Use 16-bit floating point precision to speed up 
+   training and reduce GPU memory consumption.
+6. Gradient Accumulation: Accumulate gradients over 2 steps to simulate a larger 
+   batch size, leading to more stable convergence.
+
+--------------------------------------------------------------------------------
+STEP 6: PERFORMANCE EVALUATION
+--------------------------------------------------------------------------------
+(Original Source: /train.py, /utils.py)
+1. Metrics: Monitor Training/Validation Accuracy and Loss across epochs.
+2. Confusion Matrix: Generate a matrix to identify which tumor classes are 
+   being misclassified by the model.
+3. Classification Report: Calculate Precision, Recall, and F1-Score for each 
+   of the 4 categories.
+4. Checkpointing: Save the model weights that achieve the highest Validation 
+   F1-score.
+
+--------------------------------------------------------------------------------
+STEP 7: INFERENCE & PREDICTION
+--------------------------------------------------------------------------------
+(Original Source: /predict.py)
+1. Loading: Load the best saved model weights.
+2. Test-Time Augmentation (TTA): Predict on both the original image and its 
+   horizontal flip, then average the results for a more reliable prediction.
+3. Output: Generate the final predicted class and its confidence percentage.
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+Building this project involves a cycle of data preparation, choosing a modern 
+CNN architecture, applying advanced training tricks like Mixed Precision and 
+TTA, and validating results with robust metrics.
+================================================================================
