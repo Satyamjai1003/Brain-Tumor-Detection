@@ -5,7 +5,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://tough-dancers-help.loca.lt';
 
 function App() {
   const [file, setFile] = useState(null);
